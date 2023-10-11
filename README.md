@@ -1,4 +1,4 @@
-# Blazor Project for a Gaming Role Game
+# Blazor Project for a Role Game
 
 this file may change in the future
 
