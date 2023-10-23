@@ -1,4 +1,4 @@
-# Blazor Project for a Gaming Role Game
+# Blazor Project for a Role Game
 
 this file may change in the future
 
@@ -6,7 +6,7 @@ this file may change in the future
 
 
 ## Description
-This project is a Blazor project for a Gaming Role Game. It is a project for the course "Base de donnée Relationnel" of the HEIG-VD
+This project is a Blazor project for a Role Game. It is a project for the course "Base de donnée Relationnel" of the HEIG-VD
 
 ## Authors
 - Sebastian Diaz
