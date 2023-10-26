@@ -1,6 +1,6 @@
 @page "/GridUsers"
 @using BlazinRoleGame.Data
-@inject UserService userService
+@inject IUserService userService
 @inject DialogService DialogService
 
 
@@ -14,7 +14,7 @@
             SelectionMode="DataGridSelectionMode.Single" @bind-Value=@SelectedUsers>
     <Columns>
         <RadzenDataGridColumn TItem="User" Property="UserID" Title="UserID"/>
-        <RadzenDataGridColumn TItem="User" Property="FirstName" Title="Frist Name"/>
+        <RadzenDataGridColumn TItem="User" Property="FirstName" Title="First Name"/>
         <RadzenDataGridColumn TItem="User" Property="LastName" Title="Last Name"/>
     </Columns>
 </RadzenDataGrid>
@@ -58,7 +58,7 @@
     #region Methods
     protected override async Task OnInitializedAsync()
     {
-        users = await userService.GetUsersAsyncDapper();
+        users = await userService.GetUsersAsync();
     }
 
     private void OnSubmit(User user)
@@ -66,13 +66,13 @@
         if(checkUserSelected())
         {
             UpdateUser(user);
-            userService.GetUsersAsyncDapper();
+            userService.GetUsersAsync();
             return;
         }
 
-        userService.AddUser(user);
+        userService.AddUserAsync(user);
 
-        userService.GetUsersAsyncDapper();
+        userService.GetUsersAsync();
     }
 
     private void IsObjectSelected(){
@@ -99,9 +99,9 @@
         User usertoUpdate = SelectedUsers.FirstOrDefault();
         usertoUpdate.FirstName = userUpdate.FirstName;
         usertoUpdate.LastName = userUpdate.LastName;
-        userService.UpdateUser(usertoUpdate);
+        userService.UpdateUserAsync(usertoUpdate);
         
-        userService.GetUsersAsyncDapper();
+        userService.GetUsersAsync();
     }
 
     private void DeleteUser()
@@ -110,10 +110,10 @@
     {
         foreach(User userToDelete in SelectedUsers)
         {
-            userService.DeleteUser(userToDelete);
+            userService.DeleteUserAsync(userToDelete);
         }
 
-        userService.GetUsersAsyncDapper();
+        userService.GetUsersAsync();
     }
 
     }

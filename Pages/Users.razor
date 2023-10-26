@@ -1,6 +1,6 @@
 @page "/users"
 @using BlazinRoleGame.Data
-@inject UserService userService
+@inject IUserService userService
 
 
 <PageTitle>Application Users</PageTitle>
@@ -64,7 +64,7 @@ else
     #region Methods
     protected override async Task OnInitializedAsync()
     {
-        users = await userService.GetUsersAsyncDapper();
+        users = await userService.GetUsersAsync();
     }
 
 
@@ -87,7 +87,7 @@ else
 
         private void onclickAdd()
     {
-        userService.AddUserDapper(newUser);
+        userService.AddUserAsync(newUser);
     }
 
 
