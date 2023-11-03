@@ -1,6 +1,6 @@
 @page "/users"
 @using BlazinRoleGame.Data
-@inject IUserService userService
+@inject ISupportCRUD<User> userService
 
 
 <PageTitle>Application Users</PageTitle>
@@ -10,8 +10,8 @@
 <p>In this section you can add more Users <br />
     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
         <RadzenLabel Text="First Name" />
-        <RadzenText >
-            <RadzenTextBox @bind-Value=@newUser.FirstName Change=@OnChangeFirst/>
+        <RadzenText>
+            <RadzenTextBox @bind-Value=@newUser.FirstName Change=@OnChangeFirst />
         </RadzenText>
 
         <RadzenLabel Text="Last Name" />
@@ -19,9 +19,10 @@
             <RadzenTextBox @bind-Value=@newUser.LastName Change=@OnChangeLast />
         </RadzenText>
 
-    <RadzenButton  @bind-Value=@buttonDisabled Click="@onclickAdd" Change ="@buttonDisabled" Disabled = "@buttonDisabled">+ Submit</RadzenButton>
+        <RadzenButton @bind-Value=@buttonDisabled Click="@onclickAdd" Change="@buttonDisabled"
+            Disabled="@buttonDisabled">+ Submit</RadzenButton>
     </RadzenStack>
-   
+
 </p>
 
 @if (users == null)
@@ -54,17 +55,18 @@ else
 @code {
 
     #region Properties
-  
+
     private User newUser = new User();
 
     private bool buttonDisabled = true;
-    private User[]? users;
+    private List<User> users;
     #endregion
 
     #region Methods
     protected override async Task OnInitializedAsync()
     {
-        users = await userService.GetUsersAsync();
+        users = (await userService.GetAllAsync()).ToList();
+
     }
 
 
@@ -74,20 +76,20 @@ else
     }
 
     private void OnChangeLast(string lastname)
-    {   
+    {
         UpdateButton();
     }
 
     private void UpdateButton()
     {
-        buttonDisabled = string.IsNullOrWhiteSpace(newUser.FirstName) || 
-                         string.IsNullOrWhiteSpace(newUser.LastName);
+        buttonDisabled = string.IsNullOrWhiteSpace(newUser.FirstName) ||
+        string.IsNullOrWhiteSpace(newUser.LastName);
 
     }
 
-        private void onclickAdd()
+    private async void onclickAdd()
     {
-        userService.AddUserAsync(newUser);
+       var result = await userService.AddAsync(newUser);
     }
 
 

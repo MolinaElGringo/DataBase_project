@@ -1,10 +1,11 @@
 
-public interface ISupportCRUD<T>{
-    public Task<T[]> GetAsync();
-    public Task<T> AddAsync(T obj);
-    public Task<bool> DeleteAsync(T obj);
-    public Task<T> UpdateAsync(T obj);
+public interface ISupportCRUD<Titem>
+{
+    Task<List<Titem>> GetAllAsync();
+    Task<Titem> GetById(Titem entity);
+    Task<Titem> AddAsync(Titem entity);
+    Task<bool> DeleteAsync(Titem entity);
+    Task<Titem> UpdateAsync(Titem entity);
 
-    
 }
 

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BlazinRoleGame.Data;
 
 public class User
@@ -11,6 +13,7 @@ public class User
         this.LastName = LastName;
     }
 
+    [Key]
     public int UserID {get; set;}
 
     public string FirstName {get; set;} = string.Empty;
