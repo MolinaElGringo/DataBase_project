@@ -1,6 +1,6 @@
 @page "/GridUsers"
 @using BlazinRoleGame.Data
-@inject IUserService userService
+@inject ISupportCRUD<User> userService
 @inject DialogService DialogService
 
 
@@ -50,7 +50,7 @@
     #region Properties
     private Variant variant = Variant.Filled;
     private bool buttonDisabled = true;
-    private User[]? users;
+    private List<User> users;
     private IList<User>? SelectedUsers;
     private User user = new User();
     #endregion
@@ -58,7 +58,7 @@
     #region Methods
     protected override async Task OnInitializedAsync()
     {
-        users = await userService.GetUsersAsync();
+        users = (await userService.GetAllAsync()).ToList();
     }
 
     private void OnSubmit(User user)
@@ -66,13 +66,13 @@
         if(checkUserSelected())
         {
             UpdateUser(user);
-            userService.GetUsersAsync();
+            userService.GetAllAsync();
             return;
         }
 
-        userService.AddUserAsync(user);
+        userService.AddAsync(user);
 
-        userService.GetUsersAsync();
+        userService.GetAllAsync();
     }
 
     private void IsObjectSelected(){
@@ -99,9 +99,9 @@
         User usertoUpdate = SelectedUsers.FirstOrDefault();
         usertoUpdate.FirstName = userUpdate.FirstName;
         usertoUpdate.LastName = userUpdate.LastName;
-        userService.UpdateUserAsync(usertoUpdate);
+        userService.UpdateAsync(usertoUpdate);
         
-        userService.GetUsersAsync();
+        userService.GetAllAsync();
     }
 
     private void DeleteUser()
@@ -110,10 +110,10 @@
     {
         foreach(User userToDelete in SelectedUsers)
         {
-            userService.DeleteUserAsync(userToDelete);
+            userService.DeleteAsync(userToDelete);
         }
 
-        userService.GetUsersAsync();
+        userService.GetAllAsync();
     }
 
     }
