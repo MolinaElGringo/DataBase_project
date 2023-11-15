@@ -25,6 +25,7 @@ namespace BlazinRoleGame.Datads
             var type = entity.GetType();
             var className = type.Name;
             var primaryKeyProperty = type.GetProperties().FirstOrDefault(p => p.GetCustomAttributes(typeof(KeyAttribute), false).Any());
+            
             var propNameValue = type.GetProperties()
                 .Where(prop => prop != primaryKeyProperty)
                 .ToDictionary(prop => prop.Name, p => p.GetValue(entity));
@@ -38,12 +39,12 @@ namespace BlazinRoleGame.Datads
                 throw new Exception("No primary key found");
             }
 
-            var query = $"INSERT INTO public.\"{className}\" ({properties}) values ({values});";
+            var query = $"INSERT INTO public.\"{className}\" ({properties}) values ({values}) returning \"{primaryKeyProperty.Name}\";";
 
             return Task.FromResult(ExecuteDbOperationForOne(conn =>
             {
-                var newID = conn.QuerySingleAsync<int>(query, param: propNameValue);
-
+                int result = conn.ExecuteScalar<int>(query, param: propNameValue);
+                entity.GetType().GetProperty(primaryKeyProperty.Name).SetValue(entity, result);
                 return entity;
             }));
         }

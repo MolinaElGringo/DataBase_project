@@ -9,15 +9,16 @@
 <h2>Add, Update or Delete a user by selecting it</h2>
 
 <p>
-<RadzenDataGrid AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="10"
-            AllowSorting="true" Data="@users" TItem="User" ColumnWidth="200px"
-            SelectionMode="DataGridSelectionMode.Single" @bind-Value=@SelectedUsers>
-    <Columns>
-        <RadzenDataGridColumn TItem="User" Property="UserID" Title="UserID"/>
-        <RadzenDataGridColumn TItem="User" Property="FirstName" Title="First Name"/>
-        <RadzenDataGridColumn TItem="User" Property="LastName" Title="Last Name"/>
-    </Columns>
-</RadzenDataGrid>
+    <RadzenDataGrid AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="10"
+        AllowSorting="true" Data="@users" TItem="User" ColumnWidth="200px" SelectionMode="DataGridSelectionMode.Single"
+        @bind-Value=@SelectedUsers>
+        <Columns>
+            <RadzenDataGridColumn TItem="User" Property="UserID" Title="UserID" />
+            <RadzenDataGridColumn TItem="User" Property="FirstName" Title="First Name" />
+            <RadzenDataGridColumn TItem="User" Property="LastName" Title="Last Name" />
+        </Columns>
+    </RadzenDataGrid>
 </p>
 
 <p>
@@ -28,20 +29,24 @@
                     <RadzenTextBox Name="FirstName" @bind-Value=@user.FirstName />
                 </ChildContent>
                 <Helper>
-                    <RadzenRequiredValidator Component="FirstName" Text="First name is required." Change="@IsObjectSelected"/>
+                    <RadzenRequiredValidator Component="FirstName" Text="First name is required."
+                        Change="@IsObjectSelected" />
                 </Helper>
             </RadzenFormField>
-            <RadzenFormField Text="Last Name" Variant="@variant" >
+            <RadzenFormField Text="Last Name" Variant="@variant">
                 <ChildContent>
-                    <RadzenTextBox Name="LastName" @bind-Value=@user.LastName Change="@IsObjectSelected"/>
+                    <RadzenTextBox Name="LastName" @bind-Value=@user.LastName Change="@IsObjectSelected" />
                 </ChildContent>
                 <Helper>
-                    <RadzenRequiredValidator Component="LastName" Text="Last name is required."/>
+                    <RadzenRequiredValidator Component="LastName" Text="Last name is required." />
                 </Helper>
             </RadzenFormField>
-            <RadzenButton ButtonType="ButtonType.Submit" Text="Submit user" ButtonStyle="ButtonStyle.Primary" Icon="add_circle_outline" />
-            <RadzenButton ButtonType="ButtonType.Submit" Text="Update user" ButtonStyle="ButtonStyle.Secondary" Icon="add_circle_outline" Disabled="@buttonDisabled"/>
-            <RadzenButton ButtonType="ButtonType.Button" @bind-Value=@SelectedUsers  Click=@DeleteUser Text="Delete user" ButtonStyle="ButtonStyle.Danger" Icon="report"/>
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Submit user" ButtonStyle="ButtonStyle.Primary"
+                Icon="add_circle_outline" />
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Update user" ButtonStyle="ButtonStyle.Secondary"
+                Icon="add_circle_outline" Disabled="@buttonDisabled" />
+            <RadzenButton ButtonType="ButtonType.Button" @bind-Value=@SelectedUsers Click=@DeleteUser Text="Delete user"
+                ButtonStyle="ButtonStyle.Danger" Icon="report" />
         </RadzenStack>
     </RadzenTemplateForm>
 </p>
@@ -63,19 +68,22 @@
 
     private void OnSubmit(User user)
     {
-        if(checkUserSelected())
+        if (checkUserSelected())
         {
             UpdateUser(user);
-            userService.GetAllAsync();
+
             return;
         }
 
-        userService.AddAsync(user);
+        var result = userService.AddAsync(user);
+        user = result.Result;
+        users.Add(user);
 
-        userService.GetAllAsync();
+        StateHasChanged();
     }
 
-    private void IsObjectSelected(){
+    private void IsObjectSelected()
+    {
         buttonDisabled = !checkUserSelected();
     }
 
@@ -86,7 +94,10 @@
 
     private void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
     {
-        var errors = System.Text.Json.JsonSerializer.Serialize(args.Errors, new System.Text.Json.JsonSerializerOptions() { WriteIndented = true });
+        var errors = System.Text.Json.JsonSerializer.Serialize(args.Errors, new System.Text.Json.JsonSerializerOptions()
+            {
+                WriteIndented = true
+            });
     }
 
     private void ClearSelection()
@@ -100,22 +111,31 @@
         usertoUpdate.FirstName = userUpdate.FirstName;
         usertoUpdate.LastName = userUpdate.LastName;
         userService.UpdateAsync(usertoUpdate);
-        
-        userService.GetAllAsync();
+        users.Where(u => u.UserID == usertoUpdate.UserID).Select(u => u = usertoUpdate);
+
+        StateHasChanged();
     }
 
     private void DeleteUser()
     {
-    if (checkUserSelected())
-    {
-        foreach(User userToDelete in SelectedUsers)
+        if (checkUserSelected())
         {
-            userService.DeleteAsync(userToDelete);
+            foreach (User userToDelete in SelectedUsers)
+            {
+                if (users.Remove(userToDelete))
+                {
+                    userService.DeleteAsync(userToDelete);
+                }
+            }
+
+            StateHasChanged();
+            
         }
 
-        userService.GetAllAsync();
     }
+    
 
-    }
+    
+
     #endregion
 }

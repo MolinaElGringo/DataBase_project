@@ -1,3 +1,4 @@
+using BlazinRoleGame.Datads;
 
 namespace BlazinRoleGame.Data
 {
@@ -10,6 +11,12 @@ namespace BlazinRoleGame.Data
     public class PersonneService : ServiceBase<Personne>
     {
         public PersonneService(IConfiguration configuration) : base(configuration)
+        {}
+    }
+
+    public class MangaServices : ServiceBase<Manga>
+    {
+        public MangaServices(IConfiguration configuration) : base(configuration)
         {}
     }
 }
