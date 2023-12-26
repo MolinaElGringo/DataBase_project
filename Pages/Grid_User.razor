@@ -66,6 +66,7 @@
         users = (await userService.GetAllAsync()).ToList();
     }
 
+
     private void OnSubmit(User user)
     {
         if (checkUserSelected())
@@ -76,8 +77,13 @@
         }
 
         var result = userService.AddAsync(user);
-        user = result.Result;
-        users.Add(user);
+        var listResult = result.Result;
+        
+        foreach(User u in listResult)
+        {
+            users.Add(u);
+        }
+        
 
         StateHasChanged();
     }
@@ -138,4 +144,5 @@
     
 
     #endregion
+    
 }

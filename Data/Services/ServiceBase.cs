@@ -1,4 +1,6 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Dataflow;
 using Dapper;
 using Microsoft.AspNetCore.Mvc.TagHelpers.Cache;
@@ -19,13 +21,13 @@ namespace BlazinRoleGame.Datads
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public Task<Titem> AddAsync(Titem entity)
+        public async Task<List<Titem>> AddAsync(Titem entity)
         {
 
             var type = entity.GetType();
             var className = type.Name;
             var primaryKeyProperty = type.GetProperties().FirstOrDefault(p => p.GetCustomAttributes(typeof(KeyAttribute), false).Any());
-            
+
             var propNameValue = type.GetProperties()
                 .Where(prop => prop != primaryKeyProperty)
                 .ToDictionary(prop => prop.Name, p => p.GetValue(entity));
@@ -40,13 +42,12 @@ namespace BlazinRoleGame.Datads
             }
 
             var query = $"INSERT INTO public.\"{className}\" ({properties}) values ({values}) returning \"{primaryKeyProperty.Name}\";";
-
-            return Task.FromResult(ExecuteDbOperationForOne(conn =>
+            return await ExecuteDbOperation(async conn =>
             {
-                int result = conn.ExecuteScalar<int>(query, param: propNameValue);
+                int result = await conn.ExecuteScalarAsync<int>(query, param: propNameValue);
                 entity.GetType().GetProperty(primaryKeyProperty.Name).SetValue(entity, result);
-                return entity;
-            }));
+                return new List<Titem> {entity};
+            });
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace BlazinRoleGame.Datads
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public Task<bool> DeleteAsync(Titem entity)
+        public async Task<List<Titem>> DeleteAsync(Titem entity)
         {
             var type = entity.GetType();
             var className = type.Name;
@@ -65,29 +66,25 @@ namespace BlazinRoleGame.Datads
 
             var query = $"DELETE FROM public.\"{className}\" WHERE \"{primaryKeyProperty.Name}\" = {primaryKeyProperty.GetValue(entity)};";
 
-            var result = ExecuteDbOperationForOne(conn =>
+            return await ExecuteDbOperation(async conn =>
             {
-                var deletedEntity = conn.QuerySingleOrDefault<Titem>(query, param: primaryKeyProperty);
-                return deletedEntity;
+                var rowsAffected = await conn.ExecuteAsync(query, param: primaryKeyProperty);
+                return rowsAffected > 0 ? new List<Titem> { entity } : null;
             });
-
-            if (result == null)
-                return Task.FromResult(true);
-            else
-                return Task.FromResult(false);
         }
 
         /// <summary>
         /// Get all entities from the database
         /// </summary>
         /// <returns></returns>
-        public Task<List<Titem>> GetAllAsync()
+        public async Task<List<Titem>> GetAllAsync()
         {
             var query = $"SELECT * FROM public.\"{typeof(Titem).Name}\";";
-            return Task.FromResult(ExecuteDbOperationForM(conn =>
+            return await ExecuteDbOperation(async conn =>
             {
-                return conn.Query<Titem>(query).ToList();
-            }));
+                var list = await conn.QueryAsync<Titem>(query);
+                return list.ToList();
+            });
         }
 
         /// <summary>
@@ -95,7 +92,7 @@ namespace BlazinRoleGame.Datads
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public Task<Titem> GetById(Titem entity)
+        public async Task<List<Titem>> GetById(Titem entity)
         {
             var type = entity.GetType();
             var className = type.Name;
@@ -107,11 +104,14 @@ namespace BlazinRoleGame.Datads
 
             var query = "SELECT * FROM public.\"{className}\" WHERE \"{primaryKeyProperty.Name}\" = @{primaryKeyProperty.Name};";
 
-            return Task.FromResult(ExecuteDbOperationForOne(conn =>
+            return await ExecuteDbOperation(async conn =>
             {
-                var getEntityId = conn.QuerySingleAsync<int>(query, param: primaryKeyProperty);
-                return entity;
-            }));
+                var getEntityId = await conn.ExecuteAsync(query, param: primaryKeyProperty);
+                if (getEntityId > 0)
+                    return new List<Titem> { entity };
+                else
+                    return null;
+            });
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace BlazinRoleGame.Datads
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public Task<Titem> UpdateAsync(Titem entity)
+        public async Task<List<Titem>> UpdateAsync(Titem entity)
         {
             var type = entity.GetType();
             var className = type.Name;
@@ -149,11 +149,11 @@ namespace BlazinRoleGame.Datads
 
             query += $"WHERE \"{primaryKeyProperty.Name}\" = @{primaryKeyProperty.Name};";
 
-            return Task.FromResult(ExecuteDbOperationForOne(conn =>
+            return await ExecuteDbOperation(async conn =>
             {
-                var changedEntity = conn.QuerySingleAsync(query, param: propNameValue);
-                return entity;
-            }));
+                await conn.ExecuteAsync(query, param: propNameValue);
+                return new List<Titem> { entity };
+            });
         }
 
         /// <summary>
@@ -161,11 +161,11 @@ namespace BlazinRoleGame.Datads
         /// </summary>
         /// <param name="operation"></param>
         /// <returns></returns>
-        protected virtual Titem ExecuteDbOperationForOne(Func<NpgsqlConnection, Titem> operation)
+        protected virtual async Task<Titem> ExecuteDbOperationForOne(Func<NpgsqlConnection, Titem> operation)
         {
             using (var conn = new NpgsqlConnection(_connectionString))
             {
-                conn.Open();
+                await conn.OpenAsync();
                 try
                 {
                     return operation(conn);
@@ -190,14 +190,14 @@ namespace BlazinRoleGame.Datads
         /// </summary>
         /// <param name="operation"></param>
         /// <returns></returns>
-        protected virtual List<Titem> ExecuteDbOperationForM(Func<NpgsqlConnection, List<Titem>> operation)
+        protected virtual async Task<List<Titem>> ExecuteDbOperation(Func<NpgsqlConnection, Task<List<Titem>>> operation)
         {
             using (var conn = new NpgsqlConnection(_connectionString))
             {
-                conn.Open();
+                await conn.OpenAsync();
                 try
                 {
-                    return operation(conn);
+                    return await operation(conn);
                 }
                 catch (Exception e)
                 {
