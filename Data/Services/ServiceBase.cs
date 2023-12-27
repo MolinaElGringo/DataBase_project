@@ -157,35 +157,6 @@ namespace BlazinRoleGame.Datads
         }
 
         /// <summary>
-        /// Execute a database operation for a single item
-        /// </summary>
-        /// <param name="operation"></param>
-        /// <returns></returns>
-        protected virtual async Task<Titem> ExecuteDbOperationForOne(Func<NpgsqlConnection, Titem> operation)
-        {
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                await conn.OpenAsync();
-                try
-                {
-                    return operation(conn);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    throw;
-                }
-                finally
-                {
-                    if (conn.State == System.Data.ConnectionState.Open)
-                    {
-                        conn.Close();
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// Execute a database operation for a list of items
         /// </summary>
         /// <param name="operation"></param>

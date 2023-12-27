@@ -1,5 +1,6 @@
 @page "/GridUsers"
 @using BlazinRoleGame.Data
+@using System.Collections.ObjectModel
 @inject ISupportCRUD<User> userService
 @inject DialogService DialogService
 
@@ -41,10 +42,10 @@
                     <RadzenRequiredValidator Component="LastName" Text="Last name is required." />
                 </Helper>
             </RadzenFormField>
-            <RadzenButton ButtonType="ButtonType.Submit" Text="Submit user" ButtonStyle="ButtonStyle.Primary"
-                Icon="add_circle_outline" />
-            <RadzenButton ButtonType="ButtonType.Submit" Text="Update user" ButtonStyle="ButtonStyle.Secondary"
-                Icon="add_circle_outline" Disabled="@buttonDisabled" />
+            <RadzenButton ButtonType="ButtonType.Button" Text="Submit user" ButtonStyle="ButtonStyle.Primary"
+                Icon="add_circle_outline" Click=@(args => OnSubmit(user)) />
+            <RadzenButton ButtonType="ButtonType.Button" Text="Update user" ButtonStyle="ButtonStyle.Secondary"
+                Icon="add_circle_outline" Disabled=@buttonDisabled Click=@(args => OnSubmit(user)) />
             <RadzenButton ButtonType="ButtonType.Button" @bind-Value=@SelectedUsers Click=@DeleteUser Text="Delete user"
                 ButtonStyle="ButtonStyle.Danger" Icon="report" />
         </RadzenStack>
@@ -55,7 +56,7 @@
     #region Properties
     private Variant variant = Variant.Filled;
     private bool buttonDisabled = true;
-    private List<User> users;
+    private ObservableCollection<User> users;
     private IList<User>? SelectedUsers;
     private User user = new User();
     #endregion
@@ -63,7 +64,7 @@
     #region Methods
     protected override async Task OnInitializedAsync()
     {
-        users = (await userService.GetAllAsync()).ToList();
+        users = new ObservableCollection<User>(await userService.GetAllAsync());
     }
 
 
@@ -83,7 +84,7 @@
         }
         
 
-        StateHasChanged();
+        //StateHasChanged();
     }
 
     private void IsObjectSelected()
@@ -115,9 +116,8 @@
         usertoUpdate.FirstName = userUpdate.FirstName;
         usertoUpdate.LastName = userUpdate.LastName;
         await userService.UpdateAsync(usertoUpdate);
-        users.Where(u => u.UserID == usertoUpdate.UserID).Select(u => u = usertoUpdate);
 
-        StateHasChanged();
+        //StateHasChanged();
     }
 
     private async void DeleteUser()
@@ -132,14 +132,11 @@
                 }
             }
 
-            StateHasChanged();
+            //StateHasChanged();
             
         }
 
     }
-    
-
-    
 
     #endregion
     
