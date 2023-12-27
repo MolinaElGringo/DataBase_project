@@ -67,19 +67,17 @@
     }
 
 
-    private void OnSubmit(User user)
+    private async void OnSubmit(User user)
     {
         if (checkUserSelected())
         {
             UpdateUser(user);
-
             return;
         }
 
-        var result = userService.AddAsync(user);
-        var listResult = result.Result;
+        var result = await userService.AddAsync(user);
         
-        foreach(User u in listResult)
+        foreach(User u in result)
         {
             users.Add(u);
         }
@@ -111,18 +109,18 @@
         SelectedUsers = null;
     }
 
-    private void UpdateUser(User userUpdate)
+    private async void UpdateUser(User userUpdate)
     {
         User usertoUpdate = SelectedUsers.FirstOrDefault();
         usertoUpdate.FirstName = userUpdate.FirstName;
         usertoUpdate.LastName = userUpdate.LastName;
-        userService.UpdateAsync(usertoUpdate);
+        await userService.UpdateAsync(usertoUpdate);
         users.Where(u => u.UserID == usertoUpdate.UserID).Select(u => u = usertoUpdate);
 
         StateHasChanged();
     }
 
-    private void DeleteUser()
+    private async void DeleteUser()
     {
         if (checkUserSelected())
         {
@@ -130,7 +128,7 @@
             {
                 if (users.Remove(userToDelete))
                 {
-                    userService.DeleteAsync(userToDelete);
+                    await userService.DeleteAsync(userToDelete);
                 }
             }
 
